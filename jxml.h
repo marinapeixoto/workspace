@@ -38,7 +38,7 @@ struct XML_Node_s {
 struct XML_Doc_s {
     XML_Stm_t   stm;
     XML_Node_t* root;
-    mem_pool_t* mpoo;
+    mem_pool_t* mpool;
 };
 
 typedef enum {
@@ -54,7 +54,7 @@ typedef enum {
 };
 
 XML_RET XML_ParseFile(const char* filename, XML_Doc_t* doc);
-XML_RET XML_ParseStr(const char* str, XML_Doc_t* doc);
+XML_RET XML_ParseStr(char* str, XML_Doc_t* doc);
 void XML_Destory(XML_Doc_t* doc);
 XML_RET XML_GetAttr(XML_Node_t* node, char* name, char* value);
 XML_RET XML_GetIntAttr(XML_Node_t* node, char* name, int* value);
