@@ -39,7 +39,6 @@ struct XML_Doc_s {
     XML_Stm_t   stm;
     XML_Node_t* root;
     mem_pool_t* mpoo;
-    XML_RET     lastCode;
 };
 
 typedef enum {
@@ -48,17 +47,17 @@ typedef enum {
     XML_FAILED,
     XML_PARAM_ERR,
     XML_MALLOC_ERR,
-    XML_FOPEN_ERR,
+    XML_FILE_ERR,
 
     
     XML_CODE_NUM
 };
 
-void XML_ParseFile(const char* filename, XML_Doc_t* doc);
-void XML_ParseStr(const char* str, XML_Doc_t* doc);
+XML_RET XML_ParseFile(const char* filename, XML_Doc_t* doc);
+XML_RET XML_ParseStr(const char* str, XML_Doc_t* doc);
 void XML_Destory(XML_Doc_t* doc);
-const char* XML_GetAttr(XML_Node_t* node, char* name);
-int XML_GetIntAttr(XML_Node_t* node, char* name);
+XML_RET XML_GetAttr(XML_Node_t* node, char* name, char* value);
+XML_RET XML_GetIntAttr(XML_Node_t* node, char* name, int* value);
 const char* XML_GetLastErrInfo(XML_Doc_t* doc); 
 
 #endif // __JXML_H__
