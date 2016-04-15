@@ -9,6 +9,13 @@ typedef struct {
     char    info[64];
 } CodeInfo;
 
+static XML_RET XML_GetStr(const char* addr, XML_Str_t* str);
+static XML_RET XML_GetAttrPair(const char* addr,XML_Str_t* name, XML_Str_t* value);
+static XML_RET XML_GetNode(const char* addr, XML_Node_t* node);
+static XML_RET XML_GetChildNode(const char* addr, XML_Node_t* root, XML_Node_t* child);
+static XML_RET XML_GetNextNode(const char* addr, XML_Node_t* cur, XML_Node_t* next);
+static XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
+
 CodeInfo gCodeInfo[XML_CODE_NUM] = {
     {XML_SUCCESS,"success"},
     {XML_FAILED,"failed"},
@@ -20,7 +27,7 @@ CodeInfo gCodeInfo[XML_CODE_NUM] = {
     
 };
 
-static const char* XML_GetCodeInfo(XML_RET code) {
+const char* XML_GetCodeInfo(XML_RET code) {
     int i;
     CodeInfo* ci = gCodeInfo;
     if(code < XML_CODE_START || code >= XML_CODE_NUM){

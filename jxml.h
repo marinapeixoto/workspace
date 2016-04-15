@@ -6,12 +6,16 @@
 #define JXML_MAJOR_VER 0
 #define JXML_MINOR_VER 1
 
-typedef char* JXMLStr;
 typedef struct XML_Stm_s  XML_Stm_t;
 typedef struct XML_Attr_s XML_Attr_t;
 typedef struct XML_Node_s XML_Node_t;
 typedef struct XML_Doc_s  XML_Doc_t;
 typedef uint32_t XML_RET;
+
+typedef struct {
+    uint32_t size;
+    char*    addr;
+} XML_Str_t;
 
 struct XML_Stm_s {
    uint8_t ver_major;
