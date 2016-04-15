@@ -53,11 +53,11 @@ typedef enum {
     XML_CODE_NUM
 };
 
+const char* XML_GetCodeInfo(XML_RET code);
 XML_RET XML_ParseFile(const char* filename, XML_Doc_t* doc);
 XML_RET XML_ParseStr(char* str, XML_Doc_t* doc);
 void XML_Destory(XML_Doc_t* doc);
 XML_RET XML_GetAttr(XML_Node_t* node, char* name, char* value);
 XML_RET XML_GetIntAttr(XML_Node_t* node, char* name, int* value);
-const char* XML_GetLastErrInfo(XML_Doc_t* doc); 
 
 #endif // __JXML_H__
