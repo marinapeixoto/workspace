@@ -8,7 +8,7 @@
 
 typedef struct {
     uint32_t    ptr;
-    XML_Node_t* [XML_NODE_STACK_SIZE];
+    XML_Node_t* node[XML_NODE_STACK_SIZE];
 } XML_NodeStack_t;
 
 typedef struct {
@@ -112,7 +112,7 @@ static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
             valid = (addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z') \
                 || (addr[i]>='0' && addr[i]<='9') || addr[i]=='_';
             if(!valid){
-                return break;
+                break;
             }
             i++;
         }

@@ -15,6 +15,8 @@ typedef struct XML_Node_s XML_Node_t;
 typedef struct XML_Doc_s  XML_Doc_t;
 typedef uint32_t XML_RET;
 
+typedef struct mem_pool_s mem_pool_t;
+
 typedef struct {
     uint32_t size;
     char*    addr;
@@ -57,7 +59,7 @@ typedef enum {
     XML_FILE_ERR,
     XML_PARSE_ERR,
     XML_INVALID_NAME,
-    XML_INVALID_STR
+    XML_INVALID_STR,
 
     
     XML_CODE_NUM

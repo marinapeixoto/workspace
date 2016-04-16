@@ -74,7 +74,7 @@ void* mem_pool_alloc(mem_pool_t* pool, size_t n){
         return 0;
     }
 
-    addr = ADDR_ALIGN(pool->current->last,ALIGN_SIZE);
+    addr = ADDR_ALIGN((uintptr_t)pool->current->last,ALIGN_SIZE);
     left_size = pool->current->end - addr; /* may <= 0 */
     if(n > left_size){
         blk = mem_block_create();
