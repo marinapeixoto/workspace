@@ -6,6 +6,9 @@
 #define JXML_MAJOR_VER 0
 #define JXML_MINOR_VER 1
 
+#define XML_TRUE 1
+#define XML_FALSE 0
+
 typedef struct XML_Stm_s  XML_Stm_t;
 typedef struct XML_Attr_s XML_Attr_t;
 typedef struct XML_Node_s XML_Node_t;
@@ -52,6 +55,9 @@ typedef enum {
     XML_PARAM_ERR,
     XML_MALLOC_ERR,
     XML_FILE_ERR,
+    XML_PARSE_ERR,
+    XML_INVALID_NAME,
+    XML_INVALID_STR
 
     
     XML_CODE_NUM

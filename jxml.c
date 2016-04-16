@@ -4,16 +4,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define XML_NODE_STACK_SIZE 100
+
+typedef struct {
+    uint32_t    ptr;
+    XML_Node_t* [XML_NODE_STACK_SIZE];
+} XML_NodeStack_t;
+
 typedef struct {
     XML_RET code;
     char    info[64];
 } CodeInfo;
 
-static XML_RET XML_GetStr(const char* addr, XML_Str_t* str);
+static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str);
+static XML_RET XML_GetStr(const char* addr,int size,  XML_Str_t* str);
 static XML_RET XML_GetAttrPair(const char* addr,XML_Str_t* name, XML_Str_t* value);
-static XML_RET XML_GetNode(const char* addr, XML_Node_t* node);
-static XML_RET XML_GetChildNode(const char* addr, XML_Node_t* root, XML_Node_t* child);
-static XML_RET XML_GetNextNode(const char* addr, XML_Node_t* cur, XML_Node_t* next);
+static XML_RET XML_GetNode(const char* addr,XML_NodeStack_t* ns, XML_Node_t* node);
 static XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
 
 CodeInfo gCodeInfo[XML_CODE_NUM] = {
@@ -22,6 +28,9 @@ CodeInfo gCodeInfo[XML_CODE_NUM] = {
     {XML_PARAM_ERR,"invalid paramenter"},
     {XML_MALLOC_ERR,"failed to alloc memory"},
     {XML_FILE_ERR,"failed to handle with file"},
+    {XML_PARSE_ERR,"failed to parse xml"},
+    {XML_INVALID_NAME,"invalid name"},
+    {XML_INVALID_STR,"invalid string"},
     
     {XML_CODE_NUM,"bad code number"}
     
@@ -90,4 +99,54 @@ void XML_Destory(XML_Doc_t* doc) {
         doc->root = 0;
     }
 }
+
+static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
+    int i = 0;
+    int valid;
+    if((addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z')) {
+        valid = 1;
+        while(valid){
+            if((i+1)>size) {
+                return XML_PARSE_ERR;
+            }
+            valid = (addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z') \
+                || (addr[i]>='0' && addr[i]<='9') || addr[i]=='_';
+            if(!valid){
+                return break;
+            }
+            i++;
+        }
+        if(addr[i]!=' ' || addr[i]!='\r' || addr[i]!='\n' || addr[i]!='\t' || addr[i]!='=') {
+            return XML_INVALID_NAME;
+        }
+        str->addr = addr;
+        str->size = i;
+        return XML_SUCCESS;
+    } else {
+        return XML_INVALID_NAME;
+    }
+}
+
+
+static XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
+    int i = 0;
+    if(addr[i]!="\"") {
+        return XML_INVALID_STR;
+    }
+    i++;
+    while(1) {
+        if((i+1)>size) {
+            return XML_PARSE_ERR;
+        }
+        if(addr[i]=="\"" && addr[i-1]!='\\') {
+            break;
+        }
+        i++;
+    }
+    str->addr = addr+1;
+    str->size = i-1;
+
+    return XML_SUCCESS;
+}
+
 
