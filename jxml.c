@@ -19,7 +19,7 @@ typedef struct {
 int XML_SkipBlanks(const char* addr, int size);
 XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str);
 XML_RET XML_GetStr(const char* addr,int size,  XML_Str_t* str);
-XML_RET XML_GetAttrPair(const char* addr,int size, XML_Str_t* name, XML_Str_t* value);
+XML_RET XML_GetAttrPair(const char* addr,int size,int *offset,XML_Str_t* name, XML_Str_t* value);
 XML_RET XML_GetNode(const char* addr,XML_NodeStack_t* ns, XML_Node_t* node);
 XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
 
@@ -158,32 +158,36 @@ XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
 }
 
 
-XML_RET XML_GetAttrPair(const char* addr, int size, XML_Str_t* name, XML_Str_t* value) {
-    int i = 0;
+XML_RET XML_GetAttrPair(const char* addr, int size, int* offset, XML_Str_t* name, XML_Str_t* value) {
     XML_RET ret;
+
     // skip blanks
-    i = XML_SkipBlanks(addr,size);
-
-    // get name
-    ret = XML_GetName(addr+i,size-i,name);
-    if(ret != XML_SUCCESS) {
-        return ret;
-    }
-
-    i += name->size;
-    i += XML_SkipBlanks(addr+i,size-i);
-    if(addr[i]!='='){
+    *offset += XML_SkipBlanks(addr, size-*offset);
+    if(*offset>=size){
         return XML_PARSE_ERR;
     }
-    i += 1;
-    i += XML_SkipBlanks(addr+i,size-i);
 
-    printf("char:%c\n",addr[i]);
-    // get value
-    ret = XML_GetStr(addr+i,size-i,value);
+    // get name
+    ret = XML_GetName(addr+*offset,size-*offset,name);
     if(ret != XML_SUCCESS) {
         return ret;
     }
+
+    *offset += name->size;
+
+    *offset += XML_SkipBlanks(addr+*offset,size-*offset);
+    if(addr[*offset]!='='){
+        return XML_PARSE_ERR;
+    }
+    *offset += 1;
+    *offset += XML_SkipBlanks(addr+*offset,size-*offset);
+
+    // get value
+    ret = XML_GetStr(addr+*offset,size-*offset,value);
+    if(ret != XML_SUCCESS) {
+        return ret;
+    }
+    *offset += value->size;
 
     return XML_SUCCESS;
 }
