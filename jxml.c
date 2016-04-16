@@ -7,7 +7,7 @@
 #define XML_NODE_STACK_SIZE 100
 
 typedef struct {
-    uint32_t    ptr;
+    uint32_t    rc;
     XML_Node_t* node[XML_NODE_STACK_SIZE];
 } XML_NodeStack_t;
 
@@ -16,11 +16,12 @@ typedef struct {
     char    info[64];
 } CodeInfo;
 
-static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str);
-static XML_RET XML_GetStr(const char* addr,int size,  XML_Str_t* str);
-static XML_RET XML_GetAttrPair(const char* addr,XML_Str_t* name, XML_Str_t* value);
-static XML_RET XML_GetNode(const char* addr,XML_NodeStack_t* ns, XML_Node_t* node);
-static XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
+int XML_SkipBlanks(const char* addr, int size);
+XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str);
+XML_RET XML_GetStr(const char* addr,int size,  XML_Str_t* str);
+XML_RET XML_GetAttrPair(const char* addr,int size, XML_Str_t* name, XML_Str_t* value);
+XML_RET XML_GetNode(const char* addr,XML_NodeStack_t* ns, XML_Node_t* node);
+XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
 
 CodeInfo gCodeInfo[XML_CODE_NUM] = {
     {XML_SUCCESS,"success"},
@@ -98,7 +99,16 @@ void XML_Destory(XML_Doc_t* doc) {
     }
 }
 
-static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
+int XML_SkipBlanks(const char* addr, int size) {
+    int i = 0;
+    while((addr[i] == ' ' || addr[i]=='\t' || addr[i]=='\r' || addr[i]=='\n') && (i+1)<size) {
+        i++;
+        continue;
+    }
+    return i;
+}
+
+XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
     int i = 0;
     int valid;
     if((addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z')) {
@@ -114,7 +124,7 @@ static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
             }
             i++;
         }
-        if(addr[i]!=' ' || addr[i]!='\r' || addr[i]!='\n' || addr[i]!='\t' || addr[i]!='=') {
+        if(addr[i]!=' ' && addr[i]!='\r' && addr[i]!='\n' && addr[i]!='\t' && addr[i]!='=') {
             return XML_INVALID_NAME;
         }
         str->addr = (char*)addr;
@@ -126,7 +136,7 @@ static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
 }
 
 
-static XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
+XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
     int i = 0;
     if(addr[i]!='\"') {
         return XML_INVALID_STR;
@@ -147,4 +157,34 @@ static XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
     return XML_SUCCESS;
 }
 
+
+XML_RET XML_GetAttrPair(const char* addr, int size, XML_Str_t* name, XML_Str_t* value) {
+    int i = 0;
+    XML_RET ret;
+    // skip blanks
+    i = XML_SkipBlanks(addr,size);
+
+    // get name
+    ret = XML_GetName(addr+i,size-i,name);
+    if(ret != XML_SUCCESS) {
+        return ret;
+    }
+
+    i += name->size;
+    i += XML_SkipBlanks(addr+i,size-i);
+    if(addr[i]!='='){
+        return XML_PARSE_ERR;
+    }
+    i += 1;
+    i += XML_SkipBlanks(addr+i,size-i);
+
+    printf("char:%c\n",addr[i]);
+    // get value
+    ret = XML_GetStr(addr+i,size-i,value);
+    if(ret != XML_SUCCESS) {
+        return ret;
+    }
+
+    return XML_SUCCESS;
+}
 
