@@ -63,7 +63,7 @@ typedef enum {
 
     
     XML_CODE_NUM
-};
+} XML_RET_CODE;
 
 const char* XML_GetCodeInfo(XML_RET code);
 XML_RET XML_ParseFile(const char* filename, XML_Doc_t* doc);

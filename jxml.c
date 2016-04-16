@@ -32,15 +32,13 @@ CodeInfo gCodeInfo[XML_CODE_NUM] = {
     {XML_INVALID_NAME,"invalid name"},
     {XML_INVALID_STR,"invalid string"},
     
-    {XML_CODE_NUM,"bad code number"}
-    
 };
 
 const char* XML_GetCodeInfo(XML_RET code) {
     int i;
     CodeInfo* ci = gCodeInfo;
     if(code < XML_CODE_START || code >= XML_CODE_NUM){
-        return (const char*)ci[XML_CODE_NUM].info;
+        return (const char*)ci[XML_FAILED].info;
     }
     if(ci[code].code == code) {
         return (const char*)ci[code].info;
@@ -119,7 +117,7 @@ static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
         if(addr[i]!=' ' || addr[i]!='\r' || addr[i]!='\n' || addr[i]!='\t' || addr[i]!='=') {
             return XML_INVALID_NAME;
         }
-        str->addr = addr;
+        str->addr = (char*)addr;
         str->size = i;
         return XML_SUCCESS;
     } else {
@@ -130,7 +128,7 @@ static XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
 
 static XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
     int i = 0;
-    if(addr[i]!="\"") {
+    if(addr[i]!='\"') {
         return XML_INVALID_STR;
     }
     i++;
@@ -138,12 +136,12 @@ static XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
         if((i+1)>size) {
             return XML_PARSE_ERR;
         }
-        if(addr[i]=="\"" && addr[i-1]!='\\') {
+        if(addr[i]=='\"' && addr[i-1]!='\\') {
             break;
         }
         i++;
     }
-    str->addr = addr+1;
+    str->addr = (char*)(addr+1);
     str->size = i-1;
 
     return XML_SUCCESS;
