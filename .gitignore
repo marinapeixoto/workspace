@@ -3,5 +3,6 @@
 *.swap
 *.swp
 *.o
+*.bin
 
 .idea/
