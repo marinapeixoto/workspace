@@ -202,6 +202,7 @@ XML_RET XML_GetAttrPair(const char* addr, int size, int* offset, XML_Str_t* name
 XML_RET XML_GetNode(const char* addr, int size,int* offset, XML_Node_t* node, XML_Str_t* closeTag) {
     XML_RET  ret;
     XML_Str_t tagName;
+    XML_Str_t name,value;
 
     if(addr[*offset]!='<') {
         return XML_PARSE_ERR;
@@ -215,18 +216,25 @@ XML_RET XML_GetNode(const char* addr, int size,int* offset, XML_Node_t* node, XM
 
     // skip blanks to '/' or '>'
     ret = XML_SkipBlanks(addr,size,offset);
-    // openTag
-    if(addr[*offset]=='>') {
-
-    } else if(addr[*offset]=='/') {
-        ret = XML_SkipBlanks(addr,size,offset);
-        if(addr[*offset]=='>') {
-
+    while(1) {
+        if (addr[*offset] == '>') {
+            // TODO
+            break;
+        } else if (addr[*offset] == '/') {
+            ret = XML_SkipBlanks(addr, size, offset);
+            if (addr[*offset] == '>') {
+                // TODO
+                break;
+            } else {
+                return XML_PARSE_ERR;
+            }
         } else {
-            return XML_PARSE_ERR;
+            ret = XML_GetAttrPair(addr,offset,offset,&name,&value);
+            if(ret!=XML_SUCCESS) {
+                return ret;
+            }
+
         }
-    } else {
-        return XML_PARSE_ERR;
     }
 
     return XML_SUCCESS;
