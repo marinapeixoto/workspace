@@ -16,11 +16,11 @@ typedef struct {
     char    info[64];
 } CodeInfo;
 
-int XML_SkipBlanks(const char* addr, int size);
-XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str);
-XML_RET XML_GetStr(const char* addr,int size,  XML_Str_t* str);
+XML_RET XML_SkipBlanks(const char* addr, int size, int* offset);
+XML_RET XML_GetName(const char* addr, int size,int* offset,XML_Str_t* str);
+XML_RET XML_GetStr(const char* addr,int size,int* offset, XML_Str_t* str);
 XML_RET XML_GetAttrPair(const char* addr,int size,int *offset,XML_Str_t* name, XML_Str_t* value);
-XML_RET XML_GetNode(const char* addr,XML_NodeStack_t* ns, XML_Node_t* node);
+XML_RET XML_GetNode(const char* addr,int size,int* offset, XML_Node_t* node, XML_Str_t* closeTag);
 XML_RET XML_GetStm(const char* addr, XML_Stm_t* stm);
 
 CodeInfo gCodeInfo[XML_CODE_NUM] = {
@@ -99,35 +99,38 @@ void XML_Destory(XML_Doc_t* doc) {
     }
 }
 
-int XML_SkipBlanks(const char* addr, int size) {
-    int i = 0;
-    while((addr[i] == ' ' || addr[i]=='\t' || addr[i]=='\r' || addr[i]=='\n') && (i+1)<size) {
-        i++;
+XML_RET XML_SkipBlanks(const char* addr, int size,int* offset) {
+    while((addr[*offset] == ' ' || addr[*offset]=='\t' || addr[*offset]=='\r' || addr[*offset]=='\n') && (*offset+1)<size) {
+        *offset += 1;
         continue;
     }
-    return i;
+    if((*offset+1)>size) {
+        return XML_PARSE_ERR;
+    } else {
+        return XML_SUCCESS;
+    }
 }
 
-XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
+XML_RET XML_GetName(const char* addr, int size, int* offset, XML_Str_t* str) {
     int i = 0;
     int valid;
-    if((addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z')) {
-        valid = 1;
-        while(valid){
-            if((i+1)>size) {
+    if((addr[*offset]>='A' && addr[*offset]<='Z') || (addr[*offset]>='a' && addr[*offset]<='z')) {
+        while(1){
+            if((*offset+1)>size) {
                 return XML_PARSE_ERR;
             }
-            valid = (addr[i]>='A' && addr[i]<='Z') || (addr[i]>='a' && addr[i]<='z') \
-                || (addr[i]>='0' && addr[i]<='9') || addr[i]=='_';
+            valid = (addr[*offset]>='A' && addr[*offset]<='Z') || (addr[*offset]>='a' && addr[*offset]<='z') \
+                || (addr[*offset]>='0' && addr[*offset]<='9') || addr[*offset]=='_';
             if(!valid){
                 break;
             }
+            *offset += 1;
             i++;
         }
-        if(addr[i]!=' ' && addr[i]!='\r' && addr[i]!='\n' && addr[i]!='\t' && addr[i]!='=') {
+        if(addr[*offset]!=' ' && addr[*offset]!='\r' && addr[*offset]!='\n' && addr[*offset]!='\t' && addr[*offset]!='=') {
             return XML_INVALID_NAME;
         }
-        str->addr = (char*)addr;
+        str->addr = (char*)(addr+*offset-i);
         str->size = i;
         return XML_SUCCESS;
     } else {
@@ -136,22 +139,24 @@ XML_RET XML_GetName(const char* addr, int size, XML_Str_t* str) {
 }
 
 
-XML_RET XML_GetStr(const char* addr, int size, XML_Str_t* str) {
+XML_RET XML_GetStr(const char* addr, int size,int* offset, XML_Str_t* str) {
     int i = 0;
-    if(addr[i]!='\"') {
+    if(addr[*offset]!='\"') {
         return XML_INVALID_STR;
     }
     i++;
+    *offset += 1;
     while(1) {
-        if((i+1)>size) {
+        if((*offset+1)>size) {
             return XML_PARSE_ERR;
         }
-        if(addr[i]=='\"' && addr[i-1]!='\\') {
+        if(addr[*offset]=='\"' && addr[*offset-1]!='\\') {
             break;
         }
         i++;
+        *offset += 1;
     }
-    str->addr = (char*)(addr+1);
+    str->addr = (char*)(addr+*offset-i+1);
     str->size = i-1;
 
     return XML_SUCCESS;
@@ -162,33 +167,67 @@ XML_RET XML_GetAttrPair(const char* addr, int size, int* offset, XML_Str_t* name
     XML_RET ret;
 
     // skip blanks
-    *offset += XML_SkipBlanks(addr, size-*offset);
-    if(*offset>=size){
-        return XML_PARSE_ERR;
+    ret = XML_SkipBlanks(addr, size, offset);
+    if(ret != XML_SUCCESS){
+        return ret;
     }
 
     // get name
-    ret = XML_GetName(addr+*offset,size-*offset,name);
+    ret = XML_GetName(addr,size,offset,name);
     if(ret != XML_SUCCESS) {
         return ret;
     }
 
-    *offset += name->size;
+    ret = XML_SkipBlanks(addr,size,offset);
+    if(ret != XML_SUCCESS) {
+        return ret;
+    }
 
-    *offset += XML_SkipBlanks(addr+*offset,size-*offset);
     if(addr[*offset]!='='){
         return XML_PARSE_ERR;
     }
     *offset += 1;
-    *offset += XML_SkipBlanks(addr+*offset,size-*offset);
+    XML_SkipBlanks(addr,size,offset);
 
     // get value
-    ret = XML_GetStr(addr+*offset,size-*offset,value);
+    ret = XML_GetStr(addr,size,offset,value);
     if(ret != XML_SUCCESS) {
         return ret;
     }
-    *offset += value->size;
 
     return XML_SUCCESS;
 }
 
+// start with <xxx, not <!-- and </
+XML_RET XML_GetNode(const char* addr, int size,int* offset, XML_Node_t* node, XML_Str_t* closeTag) {
+    XML_RET  ret;
+    XML_Str_t tagName;
+
+    if(addr[*offset]!='<') {
+        return XML_PARSE_ERR;
+    }
+    *offset += 1;
+
+    ret = XML_GetName(addr,size,offset,&tagName);
+    if(ret != XML_SUCCESS) {
+        return ret;
+    }
+
+    // skip blanks to '/' or '>'
+    ret = XML_SkipBlanks(addr,size,offset);
+    // openTag
+    if(addr[*offset]=='>') {
+
+    } else if(addr[*offset]=='/') {
+        ret = XML_SkipBlanks(addr,size,offset);
+        if(addr[*offset]=='>') {
+
+        } else {
+            return XML_PARSE_ERR;
+        }
+    } else {
+        return XML_PARSE_ERR;
+    }
+
+    return XML_SUCCESS;
+}
