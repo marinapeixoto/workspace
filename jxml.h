@@ -50,6 +50,7 @@ struct XML_Doc_s {
     XML_Stm_t   stm;
     XML_Node_t* root;
     mem_pool_t* mpool;
+    XML_Str_t*  rawData;
 };
 
 typedef enum {
