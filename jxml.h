@@ -14,6 +14,7 @@ typedef struct XML_Attr_s XML_Attr_t;
 typedef struct XML_Node_s XML_Node_t;
 typedef struct XML_Doc_s  XML_Doc_t;
 typedef uint32_t XML_RET;
+typedef uint32_t XML_NST;
 
 typedef struct mem_pool_s mem_pool_t;
 
@@ -42,6 +43,7 @@ struct XML_Node_s {
     XML_Node_t* lastChild;
     XML_Node_t* prev;
     XML_Node_t* next;
+    XML_NST     nodeState;
 };
 
 struct XML_Doc_s {
@@ -49,6 +51,11 @@ struct XML_Doc_s {
     XML_Node_t* root;
     mem_pool_t* mpool;
 };
+
+typedef enum {
+    XML_NODE_CLOSE,
+    XML_NODE_OPEN
+} XML_NODE_STATE;
 
 typedef enum {
     XML_CODE_START = 0,
