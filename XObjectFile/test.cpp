@@ -25,12 +25,15 @@ public:
 
 int main() {
     A a;
+    a.a = 456;
+    a.b = 97;
+    a.c = 999.999;
     XObjectFile of("out.bin", XObjectFile::store);
     of<<a;
     of.Close();
 
 
-    XObjectFile ofr("out.bin", XObjectFile::store);
+    XObjectFile ofr("out.bin", XObjectFile::load);
     A ar;
     ofr>>ar;
     ofr.Close();
