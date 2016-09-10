@@ -17,6 +17,8 @@ public:
     XObjectFile(std::string filename, OpenMode m);
     XObjectFile& operator<<(XObject&);
     XObjectFile& operator>>(XObject&);
+    void Fetch(XObject&);
+    void Push(XObject&);
     void Write(void* buf, size_t size);
     void Read(void* buf, size_t size);
     bool Open(std::string filename, OpenMode m);

@@ -17,6 +17,14 @@ XObjectFile& XObjectFile::operator>>(XObject& o) {
     return *this;
 }
 
+void XObjectFile::Fetch(XObject& o) {
+    o.Dump(*this);
+}
+
+void XObjectFile::Push(XObject& o) {
+    o.Dump(*this);
+}
+
 void XObjectFile::Write(void* buf, size_t size) {
     if(mode != store) return ;
     if(size + bufsize > XOBJECT_BUF_SIZE) Flush();    
