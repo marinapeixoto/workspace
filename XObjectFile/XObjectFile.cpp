@@ -3,16 +3,8 @@
 using namespace std;
 
 XObjectFile::XObjectFile(string filename, OpenMode m) {
-    if(load == m) {
-        fs.open(filename, ios::in|ios::binary);
-        mode = load;
-    } else {
-        fs.open(filename, ios::out|ios::binary);
-        mode = store;
-    }
-    if(!fs.is_open()) {
-        mode = invalid_mode;
-    }
+    Open(filename, m);
+    bufsize = 0;
 }
 
 XObjectFile& XObjectFile::operator<<(XObject& o) {
@@ -27,7 +19,11 @@ XObjectFile& XObjectFile::operator>>(XObject& o) {
 
 void XObjectFile::Write(void* buf, size_t size) {
     if(mode != store) return ;
-    fs.write((char*)buf,size);
+    if(size + bufsize > XOBJECT_BUF_SIZE) Flush();    
+    else {
+        memcpy(buffer+bufsize, buf, size);
+        bufsize += size;
+    }
 }
 
 void XObjectFile::Read(void* buf, size_t size) {
@@ -35,10 +31,30 @@ void XObjectFile::Read(void* buf, size_t size) {
     fs.read((char*)buf,size);
 }
 
+bool XObjectFile::Open(string filename, OpenMode m) {
+    mode = invalid_mode;
+    if(load == m) { 
+        fs.open(filename,ios::in|ios::binary);
+        mode = load;
+    } else if(store == m) {
+        fs.open(filename, ios::out|ios::binary);
+        mode = store;
+    }
+
+    if(!fs.is_open()) mode = invalid_mode;
+    return mode !=invalid_mode;
+}
+
 void XObjectFile::Close() {
+    Flush();
     if(fs.is_open()) fs.close();
     mode = invalid_mode;
 }
 
+void XObjectFile::Flush() {
+    if(bufsize == 0 || mode!=store) return ;
+    fs.write((char*)buffer, bufsize);
+    bufsize = 0;
+}
 
 
