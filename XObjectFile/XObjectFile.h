@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <string>
+#include <cstdint>
 
 #define XOBJECT_BUF_SIZE 1024
 
