@@ -4,5 +4,6 @@
 *.swp
 *.o
 *.bin
+*.out
 
 .idea/
