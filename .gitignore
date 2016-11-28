@@ -7,3 +7,10 @@
 *.out
 
 .idea/
+*.ko
+*.mod.c
+*.o.cmd
+*.ko.cmd
+*.order
+*.symvers
+.tmp_versions/
