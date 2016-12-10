@@ -36,13 +36,13 @@ O_SYNC
 ``` 
 
 
-## 3. create
+## 3. creat
 ```
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-int create(const char *pathname, mode_t mode);
+int creat(const char *pathname, mode_t mode);
 等效于：
 open(pathname, O_WRONLY|O_CREAT|O_TRUNC, mode);
 ```
